@@ -1,8 +1,8 @@
 [package]
 name = "sparse-merkle-tree"
-version = "0.6.2"
+version = "0.6.3"
 authors = ["jjy <jjyruby@gmail.com>, lansheng228 <lansheng228@gmail.com>"]
-edition = "2018"
+edition = "2021"
 license = "MIT"
 repository = "https://github.com/nervosnetwork/sparse-merkle-tree"
 description = "Sparse merkle tree implement in rust"
@@ -25,17 +25,17 @@ smtc = []
 trie = []
 
 [dependencies]
-cfg-if = "1"
-blake2b-rs = "0.2"
+cfg-if = "1.0.0"
+blake2b-rs = { git = "https://github.com/MultiAdaptive/blake2b-rs.git", branch = "develop", commit = "3e1fe3c73217cd28677e5ceb66ddda618cb1fafd" }
 
 [dev-dependencies]
-proptest = "0.9"
-criterion = "0.2"
-rand = "0.8"
+proptest = "1.5.0"
+criterion = "0.5.1"
+rand = "0.8.5"
 hex = "0.4.3"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-anyhow = "1.0.65"
+serde = { version = "1.0.204", features = ["derive"] }
+serde_json = "1.0.120"
+anyhow = "1.0.86"
 
 [[bench]]
 name = "smt_benchmark"
@@ -46,4 +46,4 @@ name = "store_counter_benchmark"
 harness = false
 
 [build-dependencies]
-cc = "1.0"
+cc = "1.0.105"

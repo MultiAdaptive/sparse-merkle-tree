@@ -84,6 +84,16 @@ impl H256 {
 
         target
     }
+
+    pub fn from_slice(slice: &[u8]) -> Self {
+        let mut array = [0u8; 32];
+        array.copy_from_slice(&slice[0..32]);
+        H256(array)
+    }
+
+    pub fn as_bytes(&self) -> &[u8] {
+        &self.0
+    }
 }
 
 impl PartialOrd for H256 {
