@@ -1,14 +1,16 @@
+use core::cmp::Ordering;
+use core::marker::PhantomData;
+
 use crate::{
     collections::VecDeque,
     error::{Error, Result},
+    H256,
+    MAX_STACK_SIZE,
     merge::{merge, MergeValue},
     merkle_proof::MerkleProof,
-    traits::{Hasher, StoreReadOps, StoreWriteOps, Value},
-    vec::Vec,
-    H256, MAX_STACK_SIZE,
+    traits::{Hasher, StoreReadOps, StoreWriteOps, Value}, vec::Vec,
 };
-use core::cmp::Ordering;
-use core::marker::PhantomData;
+
 /// The branch key
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub struct BranchKey {
@@ -59,7 +61,7 @@ impl BranchNode {
 }
 
 /// Sparse merkle tree
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 pub struct SparseMerkleTree<H, V, S> {
     store: S,
     root: H256,
@@ -120,7 +122,7 @@ impl<H: Hasher + Default, V, S: StoreReadOps<V>> SparseMerkleTree<H, V, S> {
 }
 
 impl<H: Hasher + Default, V: Value, S: StoreReadOps<V> + StoreWriteOps<V>>
-    SparseMerkleTree<H, V, S>
+SparseMerkleTree<H, V, S>
 {
     /// Update a leaf, return new merkle root
     /// set to zero value to delete a key
@@ -191,7 +193,7 @@ impl<H: Hasher + Default, V: Value, S: StoreReadOps<V> + StoreWriteOps<V>>
                 } else {
                     self.store.remove_leaf(&k)
                 }
-                .map(|_| (k, value, 0))
+                    .map(|_| (k, value, 0))
             })
             .collect::<Result<VecDeque<(H256, MergeValue, u8)>>>()?;
 

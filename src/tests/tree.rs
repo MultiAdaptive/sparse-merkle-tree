@@ -1,11 +1,13 @@
+use std::collections::HashMap;
+
+use proptest::prelude::*;
+use rand::prelude::{Rng, SliceRandom};
+
 use crate::*;
 use crate::{
     blake2b::Blake2bHasher, default_store::DefaultStore, error::Error, merge::MergeValue,
     MerkleProof,
 };
-use proptest::prelude::*;
-use rand::prelude::{Rng, SliceRandom};
-use std::collections::HashMap;
 
 #[allow(clippy::upper_case_acronyms)]
 type SMT = SparseMerkleTree<Blake2bHasher, H256, DefaultStore<H256>>;
@@ -54,7 +56,7 @@ fn test_default_merkle_proof() {
         result.unwrap_err(),
         Error::IncorrectNumberOfLeaves {
             expected: 0,
-            actual: 1
+            actual: 1,
         }
     );
 
@@ -74,7 +76,7 @@ fn test_zero_value_donot_change_root() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     let value = H256::zero();
     tree.update(key, value).unwrap();
     assert_eq!(tree.root(), &H256::zero());
@@ -89,12 +91,12 @@ fn test_zero_value_donot_change_store() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let value = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     tree.update(key, value).unwrap();
     assert_ne!(tree.root(), &H256::zero());
     let root = *tree.root();
@@ -105,12 +107,12 @@ fn test_zero_value_donot_change_store() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     let value = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     tree.update(key, value).unwrap();
     assert_eq!(tree.root(), &root);
     assert_eq!(tree.store().leaves_map(), store.leaves_map());
@@ -124,12 +126,12 @@ fn test_delete_a_leaf() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let value = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     tree.update(key, value).unwrap();
     assert_ne!(tree.root(), &H256::zero());
 
@@ -137,7 +139,7 @@ fn test_delete_a_leaf() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 2,
     ]
-    .into();
+        .into();
 
     tree.update(key, value).unwrap();
 
@@ -149,12 +151,12 @@ fn test_delete_a_leaf() {
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     let value = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 1,
     ]
-    .into();
+        .into();
     tree.update(key, value).unwrap();
     assert_ne!(tree.root(), &root);
 
@@ -278,33 +280,33 @@ fn new_smt(pairs: Vec<(H256, H256)>) -> SMT {
 fn leaves(
     min_leaves: usize,
     max_leaves: usize,
-) -> impl Strategy<Value = (Vec<(H256, H256)>, usize)> {
+) -> impl Strategy<Value=(Vec<(H256, H256)>, usize)> {
     prop::collection::vec(
         prop::array::uniform2(prop::array::uniform32(0u8..)),
         min_leaves..=max_leaves,
     )
-    .prop_flat_map(|mut pairs| {
-        pairs.dedup_by_key(|[k, _v]| *k);
-        let len = pairs.len();
-        (
-            Just(
-                pairs
-                    .into_iter()
-                    .map(|[k, v]| (k.into(), v.into()))
-                    .collect(),
-            ),
-            core::cmp::min(1, len)..=len,
-        )
-    })
+        .prop_flat_map(|mut pairs| {
+            pairs.dedup_by_key(|[k, _v]| *k);
+            let len = pairs.len();
+            (
+                Just(
+                    pairs
+                        .into_iter()
+                        .map(|[k, v]| (k.into(), v.into()))
+                        .collect(),
+                ),
+                core::cmp::min(1, len)..=len,
+            )
+        })
 }
 
-fn leaves_bitmap(max_leaves_bitmap: usize) -> impl Strategy<Value = Vec<H256>> {
+fn leaves_bitmap(max_leaves_bitmap: usize) -> impl Strategy<Value=Vec<H256>> {
     prop::collection::vec(prop::array::uniform32(0u8..), max_leaves_bitmap).prop_flat_map(
         |leaves_bitmap| Just(leaves_bitmap.into_iter().map(|item| item.into()).collect()),
     )
 }
 
-fn merkle_proof(max_proof: usize) -> impl Strategy<Value = Vec<MergeValue>> {
+fn merkle_proof(max_proof: usize) -> impl Strategy<Value=Vec<MergeValue>> {
     prop::collection::vec(prop::array::uniform32(0u8..), max_proof).prop_flat_map(|proof| {
         Just(
             proof
@@ -640,8 +642,8 @@ fn test_v0_2_broken_sample() {
         "5eff886ea0ce6ca488a3d6e336d6c0f75f46d19b42c06ce5ee98e42c96d256c7",
         "6d5257204ebe7d88fd91ae87941cb2dd9d8062b64ae5a2bd2d28ec40b9fbf6df",
     ]
-    .into_iter()
-    .map(parse_h256);
+        .into_iter()
+        .map(parse_h256);
 
     let values = vec![
         "000000000000000000000000c8328aabcd9b9e8e64fbc566c4385c3bdeb219d7",
@@ -656,8 +658,8 @@ fn test_v0_2_broken_sample() {
         "0000000000000000000000000000000000000000000000000000000000000001",
         "0000000000000000000000000000000000000000000000000000000000000000",
     ]
-    .into_iter()
-    .map(parse_h256);
+        .into_iter()
+        .map(parse_h256);
 
     let mut pairs = keys.zip(values).collect::<Vec<_>>();
     let smt = new_smt(pairs.clone());
@@ -718,16 +720,16 @@ fn test_trie_broken_sample() {
         "5eff886ea0ce6ca488a3d6e336d6c0f75f46d19b42c06ce5ee98e42c96d256c7",
         "6d5257204ebe7d88fd91ae87941cb2dd9d8062b64ae5a2bd2d28ec40b9fbf6df",
     ]
-    .into_iter()
-    .map(parse_h256);
+        .into_iter()
+        .map(parse_h256);
 
     let values = vec![
         "0000000000000000000000000000000000000000000000000000000000000001",
         "0000000000000000000000000000000000000000000000000000000000000002",
         "0000000000000000000000000000000000000000000000000000000000000003",
     ]
-    .into_iter()
-    .map(parse_h256);
+        .into_iter()
+        .map(parse_h256);
 
     let mut pairs = keys.zip(values).collect::<Vec<_>>();
     let smt = new_smt(pairs.clone());
@@ -744,17 +746,17 @@ fn test_trie_broken_sample_02() {
         1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let key2: H256 = [
         2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let key3: H256 = [
         0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
 
     let pairs = vec![
         (key1, [1; 32].into()),
@@ -801,105 +803,105 @@ fn test_trie_broken_sample_03() {
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             231, 17, 197, 236, 8, 0, 141, 194, 15, 253, 234, 189, 224, 53, 255, 173, 117, 8, 221,
             5, 34, 5, 198, 250, 99, 32, 229, 13, 222, 40, 203, 90,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             231, 17, 197, 236, 8, 0, 141, 194, 15, 253, 234, 189, 224, 53, 255, 173, 117, 8, 221,
             5, 34, 5, 198, 250, 99, 32, 229, 13, 222, 40, 203, 90,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             105, 112, 48, 175, 83, 217, 158, 108, 243, 136, 9, 21, 192, 91, 211, 190, 218, 240, 89,
             241, 63, 137, 128, 133, 65, 169, 51, 33, 49, 123, 118, 132,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             189, 150, 22, 8, 143, 248, 180, 169, 68, 195, 31, 28, 34, 180, 182, 223, 195, 37, 117,
             197, 229, 144, 229, 64, 230, 250, 21, 205, 225, 32, 135, 195,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             153, 75, 31, 235, 146, 228, 224, 228, 237, 250, 34, 227, 139, 8, 213, 118, 25, 114, 82,
             242, 215, 172, 184, 100, 205, 85, 47, 116, 140, 238, 175, 190,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             242, 174, 6, 108, 205, 74, 137, 57, 15, 248, 35, 35, 255, 58, 93, 74, 183, 47, 194, 40,
             134, 3, 215, 100, 80, 51, 28, 251, 96, 19, 201, 170,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             5, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             88, 83, 226, 107, 201, 255, 207, 189, 197, 145, 113, 95, 209, 238, 110, 9, 82, 215,
             232, 183, 203, 220, 194, 167, 21, 189, 239, 238, 178, 149, 153, 44,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     smt.update(
         [
             6, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
             0, 0, 0,
         ]
-        .into(),
+            .into(),
         [
             80, 177, 52, 81, 182, 121, 67, 120, 77, 19, 201, 42, 75, 136, 19, 238, 112, 23, 204,
             103, 20, 157, 53, 235, 80, 70, 126, 79, 9, 35, 11, 158,
         ]
-        .into(),
+            .into(),
     )
-    .unwrap();
+        .unwrap();
     let key7 = H256::from([
         7, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
@@ -929,38 +931,38 @@ fn test_replay_to_pass_proof() {
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let key2: H256 = [
         2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let key3: H256 = [
         3, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let key4: H256 = [
         4, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
 
     let existing: H256 = [
         1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let non_existing: H256 = [
         0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0,
     ]
-    .into();
+        .into();
     let other_value: H256 = [
         0, 0, 0xff, 0, 0, 0, 0xff, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
         0, 0, 0, 0xff,
     ]
-    .into();
+        .into();
     let pairs = vec![
         (key1, existing),
         (key2, non_existing),
@@ -998,6 +1000,33 @@ fn test_replay_to_pass_proof() {
         .expect("verify compiled proof"));
 
     test_sub_proof(&compiled_proof, &smt, &leaf_c, 20);
+}
+
+#[test]
+fn test_tree_clone() {
+    let key1: H256 = [
+        1, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0,
+    ]
+        .into();
+    let key2: H256 = [
+        2, 0, 0, 0, 2, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0,
+    ]
+        .into();
+    let key3: H256 = [
+        0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
+        0, 0,
+    ]
+        .into();
+    let pairs = vec![
+        (key1, [1; 32].into()),
+        (key2, [2; 32].into()),
+        (key3, [0u8; 32].into()),
+    ];
+    let smt = new_smt(pairs);
+    let smt_clone = smt.clone();
+    assert_eq!(smt, smt_clone);
 }
 
 #[test]

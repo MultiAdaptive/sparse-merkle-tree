@@ -1,16 +1,17 @@
+use core::marker::PhantomData;
+
 use crate::{
     error::{Error, Result},
+    H256,
+    MAX_STACK_SIZE,
     merge::{into_merge_value, merge, MergeValue},
     merkle_proof::MerkleProof,
     traits::{Hasher, StoreReadOps, StoreWriteOps, Value},
-    tree::{BranchKey, BranchNode},
-    vec::Vec,
-    H256, MAX_STACK_SIZE,
+    tree::{BranchKey, BranchNode}, vec::Vec,
 };
-use core::marker::PhantomData;
 
 /// Sparse merkle tree
-#[derive(Default, Debug)]
+#[derive(Default, Debug, Clone, Eq, PartialEq)]
 pub struct SparseMerkleTree<H, V, S> {
     store: S,
     root: H256,
@@ -71,7 +72,7 @@ impl<H: Hasher + Default, V, S: StoreReadOps<V>> SparseMerkleTree<H, V, S> {
 }
 
 impl<H: Hasher + Default, V: Value, S: StoreReadOps<V> + StoreWriteOps<V>>
-    SparseMerkleTree<H, V, S>
+SparseMerkleTree<H, V, S>
 {
     /// Update a leaf, return new merkle root
     /// set to zero value to delete a key

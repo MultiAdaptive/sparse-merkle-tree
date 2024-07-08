@@ -1,12 +1,12 @@
 use crate::{
     collections,
     error::Error,
+    H256,
     traits::{StoreReadOps, StoreWriteOps},
     tree::{BranchKey, BranchNode},
-    H256,
 };
 
-#[derive(Debug, Clone, Default)]
+#[derive(Debug, Clone, Default, Eq, PartialEq)]
 pub struct DefaultStore<V> {
     branches_map: Map<BranchKey, BranchNode>,
     leaves_map: Map<H256, V>,
